@@ -21,7 +21,10 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
 
             // Get relative path for display
             let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
-            content.push_str(&format!("- {}\n", rel_path.display()));
+            // Add indentation based on depth
+            let depth = rel_path.components().count();
+            let indent = "  ".repeat(depth);
+            content.push_str(&format!("{}- {}\n", indent, rel_path.display()));
         }
     }
 
