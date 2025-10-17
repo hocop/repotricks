@@ -17,10 +17,10 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
     for path in paths {
         let walk = WalkBuilder::new(path);
         for entry in walk.build().filter_map(Result::ok) {
-            if entry.file_type().map_or(false, |ft| ft.is_file()) {
-                continue;
-            }
-            let rel_path = entry.path().strip_prefix(path).unwrap_or(entry.path());
+            let entry_path = entry.path();
+
+            // Get relative path for display
+            let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
             content.push_str(&format!("- {}\n", rel_path.display()));
         }
     }
