@@ -1,65 +1,58 @@
-use std::fs;
+use std::fs::File;
+use std::io::{BufWriter, Write, BufRead, BufReader};
 use std::path::PathBuf;
 use ignore::WalkBuilder;
 use crate::utilities::is_text_extension;
 
-/// Merges the entire codebase into a single markdown file
-///
-/// # Arguments
-///
-/// * `paths` - Vector of paths to search
-/// * `output` - Path to the output file
+/// Efficiently merges the codebase into one markdown file.
 pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut content = String::new();
+    let file = File::create(output)?;
+    let mut writer = BufWriter::new(file);
 
-    // Add file tree structure
-    content.push_str("# File Structure\n\n");
+    // --- File tree header ---
+    writeln!(writer, "# File Structure\n")?;
+
+    // Single walk to collect all entries
+    let mut text_files = Vec::new();
+
     for path in paths {
-        let walk = WalkBuilder::new(path);
-        for entry in walk.build().filter_map(Result::ok) {
+        for entry in WalkBuilder::new(path).build().filter_map(Result::ok) {
             let entry_path = entry.path();
 
-            // Get relative path for display
             let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
-            // Add indentation based on depth
             let depth = rel_path.components().count();
             if depth >= 1 {
                 let indent = "  ".repeat(depth - 1);
-                content.push_str(&format!("{}- {}\n", indent, rel_path.display()));
-            }
-        }
-    }
-
-    content.push_str("\n\n# File Contents\n\n");
-
-    // Add file contents
-    for path in paths {
-        let walk = WalkBuilder::new(path);
-        for entry in walk.build().filter_map(Result::ok) {
-            let entry_path = entry.path();
-
-            // Skip binary files - only allow known text-based extensions
-            let extension = entry_path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
-            if !is_text_extension(extension) {
-                continue;
+                writeln!(writer, "{}- {}", indent, rel_path.file_name().unwrap().display())?;
             }
 
-            // Only process files, not directories
-            if entry.file_type().map_or(false, |ft| ft.is_file()) {
-                let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
-                content.push_str(&format!("{}\n", rel_path.display()));
-
-                if let Ok(file_content) = fs::read_to_string(entry_path) {
-                    content.push_str("```\n");
-                    content.push_str(&file_content);
-                    content.push_str("```\n\n");
+            // Collect text files for later reading
+            if let Some(ext) = entry_path.extension().and_then(|x| x.to_str()) {
+                if is_text_extension(ext) {
+                    text_files.push(entry_path.to_path_buf());
                 }
             }
         }
     }
 
-    // Write output file
-    fs::write(output, &content)?;
+    writeln!(writer, "\n\n# File Contents\n")?;
 
+    // --- Stream file contents ---
+    for entry_path in text_files {
+        writeln!(writer, "{}\n```", entry_path.display())?;
+
+        if let Ok(file) = File::open(&entry_path) {
+            let mut reader = BufReader::new(file);
+            let mut line = String::new();
+            while reader.read_line(&mut line)? > 0 {
+                writer.write_all(line.as_bytes())?;
+                line.clear();
+            }
+        }
+
+        writeln!(writer, "```\n")?;
+    }
+
+    writer.flush()?;
     Ok(())
 }
