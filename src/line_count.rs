@@ -63,6 +63,7 @@ pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<HashMa
 /// Count lines in a single file
 fn count_file_lines(path: &Path) -> Result<usize, Box<dyn std::error::Error>> {
     let content = fs::read_to_string(path)?;
-    let lines = content.lines().count();
-    Ok(lines)
+    // Skip empty lines (lines with only whitespace)
+    let non_empty_lines = content.lines().filter(|line| !line.trim().is_empty()).count();
+    Ok(non_empty_lines)
 }
