@@ -29,7 +29,6 @@ Now you can safely upload all your company's codebase into ~~stackoverflow~~ cha
 ## Features
 
 - Respects .gitignore
-- `lc` groups files by language based on file extension
 
 ## Installation
 
