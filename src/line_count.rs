@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs;
+use std::io::BufRead; // Import BufRead trait
 use std::path::{Path, PathBuf};
 use ignore::WalkBuilder;
 use crate::utilities::is_text_extension;
@@ -10,8 +11,8 @@ use crate::utilities::is_text_extension;
 ///
 /// * `paths` - Vector of paths to search
 /// * `extensions` - Optional vector of file extensions to include
-pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<HashMap<String, usize>, Box<dyn std::error::Error>> {
-    let mut counts = HashMap::new();
+pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<BTreeMap<String, usize>, Box<dyn std::error::Error>> {
+    let mut counts = BTreeMap::new();
     let ext_set = if let Some(exts) = extensions {
         let exts = exts.split(',').map(|s| s.trim().to_lowercase()).collect::<Vec<_>>();
         Some(exts)
@@ -62,8 +63,18 @@ pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<HashMa
 
 /// Count lines in a single file
 fn count_file_lines(path: &Path) -> Result<usize, Box<dyn std::error::Error>> {
-    let content = fs::read_to_string(path)?;
-    // Skip empty lines (lines with only whitespace)
-    let non_empty_lines = content.lines().filter(|line| !line.trim().is_empty()).count();
-    Ok(non_empty_lines)
+    // Use stdio to read line by line, skip empty lines
+    // This is more memory efficient than reading entire file
+    let file = fs::File::open(path)?;
+    let reader = std::io::BufReader::new(file);
+    let mut count = 0;
+
+    for line in reader.lines() {
+        let line = line?;
+        if !line.trim().is_empty() {
+            count += 1;
+        }
+    }
+
+    Ok(count)
 }
