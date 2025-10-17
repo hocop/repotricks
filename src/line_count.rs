@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use ignore::WalkBuilder;
+use crate::utilities::is_text_extension;
 
 /// Counts lines of code in files, grouped by language (file extension)
 ///
@@ -41,9 +42,9 @@ pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<HashMa
                 }
             }
 
-            // Skip images and binary files
+            // Skip binary files - only allow known text-based extensions
             if let Some(extension) = extension.as_ref() {
-                if is_binary_extension(extension) {
+                if !is_text_extension(extension) {
                     continue;
                 }
             }
@@ -64,20 +65,4 @@ fn count_file_lines(path: &Path) -> Result<usize, Box<dyn std::error::Error>> {
     let content = fs::read_to_string(path)?;
     let lines = content.lines().count();
     Ok(lines)
-}
-
-/// Check if an extension is for a binary file
-fn is_binary_extension(extension: &str) -> bool {
-    match extension {
-        "png" | "jpg" | "jpeg" | "gif" | "bmp" | "tiff" |
-        "svg" | "psd" | "ico" |
-        "mp3" | "mp4" | "wav" | "ogg" | "flac" |
-        "avi" | "mov" | "mkv" | "mpg" | "mpeg" |
-        "pdf" | "doc" | "docx" | "xls" | "xlsx" |
-        "ppt" | "pptx" | "zip" | "rar" | "7z" |
-        "exe" | "dll" | "so" | "dylib" | "jar" |
-        "class" | "swf" | "apk" | "deb" | "rpm" |
-        "iso" | "img" | "bin" => true,
-        _ => false,
-    }
 }

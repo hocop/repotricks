@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use ignore::WalkBuilder;
+use crate::utilities::is_text_extension;
 
 /// Merges the entire codebase into a single markdown file
 ///
@@ -30,26 +31,30 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
     for path in paths {
         let walk = WalkBuilder::new(path);
         for entry in walk.build().filter_map(Result::ok) {
-            let path = entry.path();
+            let entry_path = entry.path();
 
-            // Skip binary files
-            if path.extension().and_then(|ext| ext.to_str()) == Some("png") ||
-               path.extension().and_then(|ext| ext.to_str()) == Some("jpg") ||
-               path.extension().and_then(|ext| ext.to_str()) == Some("gif") ||
-               path.extension().and_then(|ext| ext.to_str()) == Some("pdf") ||
-               path.extension().and_then(|ext| ext.to_str()) == Some("zip") {
+            // Skip binary files - only allow known text-based extensions
+            let extension = entry_path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
+            if !is_text_extension(extension) {
                 continue;
             }
 
             // Only process files, not directories
             if entry.file_type().map_or(false, |ft| ft.is_file()) {
-                let rel_path = path.strip_prefix(path).unwrap_or(path);
+                let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
                 content.push_str(&format!("## {}\n\n", rel_path.display()));
 
-                if let Ok(file_content) = fs::read_to_string(path) {
-                    content.push_str("```\n");
-                    content.push_str(&file_content);
-                    content.push_str("```\n\n");
+                if let Ok(file_content) = fs::read_to_string(entry_path) {
+                    // Handle markdown files (add code fences for non-code content)
+                    if extension == "md" {
+                        content.push_str("```\n");
+                        content.push_str(&file_content);
+                        content.push_str("```\n\n");
+                    } else {
+                        content.push_str("```\n");
+                        content.push_str(&file_content);
+                        content.push_str("```\n\n");
+                    }
                 }
             }
         }

@@ -34,6 +34,7 @@ enum Commands {
 
 mod line_count;
 mod context;
+mod utilities;
 
 fn main() {
     let cli = Cli::parse();
