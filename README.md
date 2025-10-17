@@ -7,7 +7,7 @@ A CLI tool to analyze and report on code repositories.
 To install the tool, use cargo:
 
 ```bash
-cargo install --path /home/ruslan/code/small_progs/repo_tricks
+cargo install --path .
 ```
 
 ## Commands

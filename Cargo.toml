@@ -1,5 +1,5 @@
 [package]
-name = "repo_tricks"
+name = "repotricks"
 version = "0.1.0"
 edition = "2024"
 authors = ["Your Name <you@example.com>"]

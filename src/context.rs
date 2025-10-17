@@ -23,8 +23,10 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
             let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
             // Add indentation based on depth
             let depth = rel_path.components().count();
-            let indent = "  ".repeat(depth);
-            content.push_str(&format!("{}- {}\n", indent, rel_path.display()));
+            if depth >= 1 {
+                let indent = "  ".repeat(depth - 1);
+                content.push_str(&format!("{}- {}\n", indent, rel_path.display()));
+            }
         }
     }
 
@@ -45,7 +47,7 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
             // Only process files, not directories
             if entry.file_type().map_or(false, |ft| ft.is_file()) {
                 let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
-                content.push_str(&format!("## {}\n\n", rel_path.display()));
+                content.push_str(&format!("{}\n", rel_path.display()));
 
                 if let Ok(file_content) = fs::read_to_string(entry_path) {
                     content.push_str("```\n");
