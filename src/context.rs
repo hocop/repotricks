@@ -48,16 +48,9 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
                 content.push_str(&format!("## {}\n\n", rel_path.display()));
 
                 if let Ok(file_content) = fs::read_to_string(entry_path) {
-                    // Handle markdown files (add code fences for non-code content)
-                    if extension == "md" {
-                        content.push_str("```\n");
-                        content.push_str(&file_content);
-                        content.push_str("```\n\n");
-                    } else {
-                        content.push_str("```\n");
-                        content.push_str(&file_content);
-                        content.push_str("```\n\n");
-                    }
+                    content.push_str("```\n");
+                    content.push_str(&file_content);
+                    content.push_str("```\n\n");
                 }
             }
         }

@@ -3,7 +3,7 @@
 /// Check if an extension is for a text-based file (whitelist approach)
 pub fn is_text_extension(extension: &str) -> bool {
     match extension.to_lowercase().as_str() {
-        // Text-based programming languages and markup
+        // Text-based programming languages
         "rs" | "py" | "js" | "ts" | "gleam" | "java" | "cpp" | "c" | "h" | "cs" | "go" | "rb" | "php" |
         "swift" | "kt" | "groovy" | "scala" | "jsx" | "tsx" | "ps1" | "rsbuild" | "cson" | "coffee" |
         "ue4game" | "uex" | "graphql" | "gql" | "pug" | "jade" | "handlebars" | "hbs" | "mustache" | "hjson" |
