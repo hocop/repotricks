@@ -52,7 +52,10 @@ pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<BTreeM
 
             // Count lines in the file
             if let Ok(lines) = count_file_lines(path) {
-                let counter = counts.entry(extension.unwrap_or_default()).or_insert(0);
+                let counter = counts.entry(match extension.as_ref() {
+                    Some(ext) => ext.clone(),
+                    None => "no_extension".to_string(),
+                }).or_insert(0);
                 *counter += lines;
             }
         }
