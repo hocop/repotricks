@@ -243,7 +243,6 @@ dependencies = [
  "clap",
  "ignore",
  "serde",
- "walkdir",
 ]
 
 [[package]]

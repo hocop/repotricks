@@ -2,14 +2,6 @@
 
 A CLI tool to analyze and report on code repositories.
 
-## Installation
-
-To install the tool, use cargo:
-
-```bash
-$ cargo install --path .
-```
-
 ## Commands
 
 ### lc - Line Count
@@ -38,6 +30,14 @@ Now you can safely upload all your company's codebase into ~~stackoverflow~~ cha
 
 - Respects .gitignore
 - `lc` groups files by language based on file extension
+
+## Installation
+
+To install the tool, use cargo:
+
+```bash
+$ cargo install --path .
+```
 
 ## Contributing
 
