@@ -38,18 +38,8 @@ repotricks context --output my-context.md
 
 ## Features
 
-- **Respects .gitignore**: Both commands ignore files specified in .gitignore
-- **Language Detection**: Automatically groups files by language based on file extension
-- **Image Handling**: Lists images in file tree but doesn't include them in line counts
-- **Markdown Output**: Context command generates a comprehensive markdown file with file structure and contents
-
-## Dependencies
-
-The tool uses the following dependencies:
-
-- [clap](https://github.com/clap-rs/clap) for command-line parsing
-- [ignore](https://github.com/BurntSushi/ignore) for handling .gitignore patterns
-- [walkdir](https://github.com/BurntSushi/walkdir) for directory traversal
+- Respects .gitignore
+- Groups files by language based on file extension
 
 ## Contributing
 
