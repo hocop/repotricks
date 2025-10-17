@@ -7,7 +7,7 @@ A CLI tool to analyze and report on code repositories.
 To install the tool, use cargo:
 
 ```bash
-cargo install --path .
+$ cargo install --path .
 ```
 
 ## Commands
@@ -16,12 +16,11 @@ cargo install --path .
 
 Counts lines of code in files, grouped by language (file extension).
 
-```bash
-# Count lines in the current directory
-repotricks lc
-
-# Count lines with specific extensions
-repotricks lc --extensions rs,py,js
+```
+$ repotricks lc
+md files: 29 lines
+rs files: 206 lines
+toml files: 12 lines
 ```
 
 ### context - Merge Codebase
@@ -29,17 +28,16 @@ repotricks lc --extensions rs,py,js
 Merges all codebase into a single markdown file with file structure and contents.
 
 ```bash
-# Generate context file in current directory
-repotricks context
-
-# Generate context file with custom output path
-repotricks context --output my-context.md
+$ repotricks context
+Context file generated: context.md
 ```
+
+Now you can safely upload all your company's codebase into ~~stackoverflow~~ chatgpt!
 
 ## Features
 
 - Respects .gitignore
-- Groups files by language based on file extension
+- `lc` groups files by language based on file extension
 
 ## Contributing
 
