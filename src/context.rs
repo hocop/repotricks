@@ -4,11 +4,6 @@ use ignore::WalkBuilder;
 use crate::utilities::is_text_extension;
 
 /// Merges the entire codebase into a single markdown file
-///
-/// # Arguments
-///
-/// * `paths` - Vector of paths to search
-/// * `output` - Path to the output file
 pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut content = String::new();
 
@@ -25,7 +20,7 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
             let depth = rel_path.components().count();
             if depth >= 1 {
                 let indent = "  ".repeat(depth - 1);
-                content.push_str(&format!("{}- {}\n", indent, rel_path.display()));
+                content.push_str(&format!("{}- {}\n", indent, rel_path.file_name().unwrap().display()));
             }
         }
     }
