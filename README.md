@@ -4,18 +4,7 @@ A CLI tool to analyze and report on code repositories.
 
 ## Commands
 
-### lc - Line Count
-
-Counts lines of code in files, grouped by language (file extension).
-
-```
-$ repotricks lc
-md files: 29 lines
-rs files: 206 lines
-toml files: 12 lines
-```
-
-### context - Merge Codebase
+### `context`
 
 Merges all codebase into a single markdown file with file structure and contents.
 
@@ -26,9 +15,16 @@ Context file generated: context.md
 
 Now you can safely upload all your company's codebase into ~~stackoverflow~~ chatgpt!
 
-## Features
+### `lc`
 
-- Respects .gitignore
+Counts non-blank lines of code, grouped by language (file extension).
+
+```
+$ repotricks lc
+md files: 29 lines
+rs files: 206 lines
+toml files: 12 lines
+```
 
 ## Installation
 
@@ -37,6 +33,11 @@ To install the tool, use cargo:
 ```bash
 $ cargo install --path .
 ```
+
+## Features
+
+- Respects .gitignore
+- Reasonably blazingly fast
 
 ## Contributing
 
