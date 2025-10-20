@@ -1,18 +1,17 @@
 use std::collections::BTreeMap;
 use std::fs;
-use std::io::BufRead; // Import BufRead trait
+use std::io::BufRead;
 use std::path::{Path, PathBuf};
 use ignore::WalkBuilder;
+use rayon::prelude::*;
 use crate::utilities::is_text_extension;
 
-/// Counts lines of code in files, grouped by language (file extension)
-///
-/// # Arguments
-///
-/// * `paths` - Vector of paths to search
-/// * `extensions` - Optional vector of file extensions to include
+
 pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<BTreeMap<String, usize>, Box<dyn std::error::Error>> {
-    let mut counts = BTreeMap::new();
+    // Initialize a BTreeMap to store line counts by file extension
+    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+
+    // Parse the extensions parameter into a set for efficient lookup
     let ext_set = if let Some(exts) = extensions {
         let exts = exts.split(',').map(|s| s.trim().to_lowercase()).collect::<Vec<_>>();
         Some(exts)
@@ -20,49 +19,46 @@ pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<BTreeM
         None
     };
 
-    for path in paths {
-        let walk = WalkBuilder::new(path);
-
-        // .gitignore handling is built into the WalkBuilder
-        for entry in walk.build().filter_map(Result::ok) {
-            let path = entry.path();
-
-            // Skip directories and binary files
-            if path.is_dir() || !entry.file_type().map_or(false, |ft| ft.is_file()) {
-                continue;
-            }
-
-            let extension = path.extension()
+    paths.iter()
+        // For each path create a walk
+        .flat_map(|path| WalkBuilder::new(path).build())
+        .filter_map(Result::ok)
+        // Skip directories
+        .filter(|entry| entry.file_type().map_or(false, |ft| ft.is_file()))
+        .filter_map(|entry| {
+            // Get file extension and convert to lowercase
+            entry.path().extension()
                 .and_then(|os_str| os_str.to_str())
-                .map(|s| s.to_lowercase());
-
-            // Check if extension is allowed
+                .map(|extension| extension.to_lowercase())
+                .map(|extension| (entry, extension))
+        })
+        .filter(|(_entry, extension)|
+            // Check if this extension is in the allowed set (if any)
             if let Some(ref ext_set) = ext_set {
-                if !ext_set.contains(&extension.as_ref().unwrap_or(&"".to_string())) {
-                    continue;
-                }
+                ext_set.contains(extension)
+            } else {
+                // If no extensions specified, include all
+                true
             }
+        )
+        // Skip binary files by checking against known text extensions
+        .filter(|(_entry, extension)| is_text_extension(extension))
+        // Collect all matching files into a vector for parallel processing
+        .collect::<Vec<_>>().par_iter()
+        // Try to count lines for each file (skip files that can't be read)
+        .filter_map(|(entry, extension)|
+            count_file_lines(entry.path()).map(|count| (extension, count)).ok()
+        )
+        // Collect results and update the counts map
+        .collect::<Vec<_>>().iter()
+        .for_each(|(ext, count)| {
+            *counts.entry(ext.to_string()).or_insert(0) += count;
+        });
 
-            // Skip binary files - only allow known text-based extensions
-            if let Some(extension) = extension.as_ref() {
-                if !is_text_extension(extension) {
-                    continue;
-                }
-            }
-
-            // Count lines in the file
-            if let Ok(lines) = count_file_lines(path) {
-                let counter = counts.entry(match extension.as_ref() {
-                    Some(ext) => ext.clone(),
-                    None => "no_extension".to_string(),
-                }).or_insert(0);
-                *counter += lines;
-            }
-        }
-    }
-
+   // Return a clone of the inner BTreeMap
    Ok(counts)
 }
+
 
 /// Count lines in a single file
 fn count_file_lines(path: &Path) -> Result<usize, Box<dyn std::error::Error>> {
@@ -70,14 +66,10 @@ fn count_file_lines(path: &Path) -> Result<usize, Box<dyn std::error::Error>> {
     // This is more memory efficient than reading entire file
     let file = fs::File::open(path)?;
     let reader = std::io::BufReader::new(file);
-    let mut count = 0;
-
-    for line in reader.lines() {
-        let line = line?;
-        if !line.trim().is_empty() {
-            count += 1;
-        }
-    }
+    let count = reader.lines()
+        .filter_map(|line| line.ok())
+        .filter(|line| !line.trim().is_empty())
+        .count();
 
     Ok(count)
 }

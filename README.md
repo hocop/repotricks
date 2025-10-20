@@ -1,6 +1,6 @@
 # Repotricks
 
-A CLI tool to analyze and report on code repositories.
+A CLI tool to analyze code repositories.
 
 ## Commands
 
