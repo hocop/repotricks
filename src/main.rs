@@ -4,9 +4,7 @@ use std::path::PathBuf;
 /// A CLI tool to analyze code repositories
 #[derive(Parser)]
 #[command(name = "repotricks")]
-#[command(author = "Your Name <you@example.com>")]
-#[command(version = "0.1.0")]
-#[command(about = "Analyze and report on code repositories", long_about = None)]
+#[command(about = "Analyze code repositories", long_about = None)]
 struct Cli {
     /// One or more paths to search (default is current directory)
     #[arg(default_value = ".", global = true)]
