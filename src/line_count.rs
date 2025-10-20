@@ -39,11 +39,7 @@ pub fn count_lines(paths: &[PathBuf], extensions: Option<&str>) -> Result<BTreeM
             )
             .filter(|(_entry, extension)|
                 // Skip binary files - only allow known text-based extensions
-                if let Some(extension) = extension {
-                    is_text_extension(extension)
-                } else {
-                    true
-                }
+                extension.as_deref().map(is_text_extension).unwrap_or(true)
             )
             .collect::<Vec<_>>().par_iter()
             .filter_map(|(entry, extension)|
