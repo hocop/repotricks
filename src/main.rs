@@ -22,6 +22,12 @@ enum Commands {
         #[arg(long, value_name = "EXTENSIONS")]
         extensions: Option<String>,
     },
+    /// Count size of files grouped by extension
+    Size {
+        /// Show only these extensions (comma-separated, e.g. rs,py,js)
+        #[arg(long, value_name = "EXTENSIONS")]
+        extensions: Option<String>,
+    },
     /// Merge all codebase into a single markdown file
     Context {
         /// Output file path (default: context.md)
@@ -46,6 +52,16 @@ fn main() {
                     }
                 }
                 Err(e) => eprintln!("Error counting lines: {}", e),
+            }
+        }
+        Commands::Size { extensions } => {
+            match line_count::count_file_sizes(&cli.paths, extensions.as_deref()) {
+                Ok(counts) => {
+                    for (ext, count) in counts {
+                        println!("{} files: {} bytes", ext, count);
+                    }
+                }
+                Err(e) => eprintln!("Error counting file sizes: {}", e),
             }
         }
         Commands::Context { output } => {
