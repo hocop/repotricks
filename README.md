@@ -26,6 +26,20 @@ rs files: 206 lines
 toml files: 12 lines
 ```
 
+### `size`
+
+Counts file sizes grouped by extension.
+
+```
+$ repotricks size
+md files: 640 bytes
+rs files: 11224 bytes
+toml files: 235 bytes
+
+$ repotricks size --extensions rs
+rs files: 11224 bytes
+```
+
 ## Installation
 
 To install the tool, use cargo:
