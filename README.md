@@ -45,7 +45,7 @@ rs files: 11224 bytes
 To install the tool, use cargo:
 
 ```bash
-$ cargo install --path .
+$ cargo install --git https://github.com/hocop/repotricks
 ```
 
 ## Features
