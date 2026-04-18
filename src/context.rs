@@ -4,7 +4,7 @@ use ignore::WalkBuilder;
 use crate::utilities::is_text_extension;
 
 /// Merges the entire codebase into a single markdown file
-pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn generate_context(paths: &[PathBuf]) -> String {
     let mut content = String::new();
 
     // Add file tree structure
@@ -53,8 +53,5 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
         }
     }
 
-    // Write output file
-    fs::write(output, &content)?;
-
-    Ok(())
+    content
 }

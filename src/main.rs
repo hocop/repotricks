@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+use std::fs;
 
 /// A CLI tool to analyze code repositories
 #[derive(Parser)]
@@ -33,6 +34,8 @@ enum Commands {
         /// Output file path (default: context.md)
         #[arg(long, default_value = "context.md", value_name = "FILE")]
         output: String,
+        #[arg(long, default_value = "0", value_name = "STDOUT")]
+        stdout: bool,
     },
 }
 
@@ -64,11 +67,16 @@ fn main() {
                 Err(e) => eprintln!("Error counting file sizes: {}", e),
             }
         }
-        Commands::Context { output } => {
-            if let Err(e) = context::generate_context(&cli.paths, output) {
-                eprintln!("Error generating context: {}", e);
+        Commands::Context { output, stdout } => {
+            // Write output file
+            let content = context::generate_context(&cli.paths);
+            if *stdout {
+                println!("{content}");
             } else {
-                println!("Context file generated: {}", output);
+                match fs::write(output, &content) {
+                    Ok(()) => {},
+                    Err(e) => eprintln!("Error writing context: {}", e),
+                };
             }
         }
     }
