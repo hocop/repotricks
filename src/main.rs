@@ -34,7 +34,7 @@ enum Commands {
         /// Output file path (default: context.md)
         #[arg(long, default_value = "context.md", value_name = "FILE")]
         output: String,
-        #[arg(long, default_value = "0", value_name = "STDOUT")]
+        #[arg(long, default_value = "false", value_name = "STDOUT")]
         stdout: bool,
     },
 }
