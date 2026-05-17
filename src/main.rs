@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 use std::fs;
+use utilities::is_in_gitignore;
 
 /// A CLI tool to analyze code repositories
 #[derive(Parser)]
@@ -60,7 +61,14 @@ fn main() {
             println!("{}", content);
         } else {
             match fs::write(&cli.output, &content) {
-                Ok(()) => {}
+                Ok(()) => {
+                    println!("Context saved to {}", cli.output);
+                    if !is_in_gitignore(&cli.output) {
+                        println!("\nNote: {} is not in your .gitignore.", cli.output);
+                        println!("To avoid committing it, run:");
+                        println!("echo {} >> .gitignore", cli.output);
+                    }
+                }
                 Err(e) => eprintln!("Error writing context: {}", e),
             }
         }

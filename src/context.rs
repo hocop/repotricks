@@ -44,7 +44,7 @@ pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>) -> 
                 if let Ok(file_content) = fs::read_to_string(entry_path) {
                     content.push_str("```\n");
                     content.push_str(&file_content);
-                    content.push_str("```\n\n");
+                    content.push_str("\n```\n\n");
                 }
             }
         }
