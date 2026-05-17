@@ -15,13 +15,9 @@ pub fn generate_context(paths: &[PathBuf]) -> String {
             let entry_path = entry.path();
 
             // Get relative path for display
-            let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
-            // Add indentation based on depth
-            let depth = rel_path.components().count();
-            if depth >= 1 {
-                let indent = "  ".repeat(depth - 1);
-                content.push_str(&format!("{}- {}\n", indent, rel_path.file_name().unwrap().display()));
-            }
+            let depth = entry_path.components().count();
+            let indent = "  ".repeat(depth - 1);
+            content.push_str(&format!("{}- {}\n", indent, entry_path.display()));
         }
     }
 
