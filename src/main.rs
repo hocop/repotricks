@@ -56,7 +56,7 @@ fn main() {
             Err(e) => eprintln!("Error counting lines: {}", e),
         }
     } else {
-        let content = context::generate_context(&cli.paths, ext_filter.as_ref());
+        let content = context::generate_context(&cli.paths, ext_filter.as_ref(), Some(&cli.output));
         if cli.stdout {
             println!("{}", content);
         } else {

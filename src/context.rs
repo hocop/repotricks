@@ -3,7 +3,11 @@ use std::path::PathBuf;
 use ignore::WalkBuilder;
 use crate::utilities::is_text_extension;
 
-pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>) -> String {
+pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>, exclude_file: Option<&str>) -> String {
+    let exclude_path = exclude_file.map(|f| {
+        fs::canonicalize(f).unwrap_or_else(|_| PathBuf::from(f))
+    });
+
     let mut content = String::new();
 
     content.push_str("# File Structure\n\n");
@@ -11,6 +15,15 @@ pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>) -> 
         let walk = WalkBuilder::new(path);
         for entry in walk.build().filter_map(Result::ok) {
             let entry_path = entry.path();
+
+            if let Some(ref excl) = exclude_path {
+                if let Ok(canonical) = fs::canonicalize(entry_path) {
+                    if &canonical == excl {
+                        continue;
+                    }
+                }
+            }
+
             let depth = entry_path.components().count();
             let indent = "  ".repeat(depth - 1);
             content.push_str(&format!("{}- {}\n", indent, entry_path.display()));
@@ -23,6 +36,14 @@ pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>) -> 
         let walk = WalkBuilder::new(path);
         for entry in walk.build().filter_map(Result::ok) {
             let entry_path = entry.path();
+
+            if let Some(ref excl) = exclude_path {
+                if let Ok(canonical) = fs::canonicalize(entry_path) {
+                    if &canonical == excl {
+                        continue;
+                    }
+                }
+            }
 
             let extension = entry_path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
             let extension_lower = extension.to_lowercase();
