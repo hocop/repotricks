@@ -1,8 +1,8 @@
 [package]
-name = "repotricks"
+name = "rcontext"
 version = "0.1.0"
 edition = "2024"
-description = "A CLI tool to analyze code repositories"
+description = "Merge codebase into context or count lines"
 license = "MIT"
 
 [dependencies]

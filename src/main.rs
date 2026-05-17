@@ -1,42 +1,31 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use std::path::PathBuf;
 use std::fs;
 
 /// A CLI tool to analyze code repositories
 #[derive(Parser)]
-#[command(name = "repotricks")]
-#[command(about = "Analyze code repositories", long_about = None)]
+#[command(name = "rcontext")]
+#[command(about = "Merge codebase into context or count lines", long_about = None)]
 struct Cli {
     /// One or more paths to search (default is current directory)
-    #[arg(default_value = ".", global = true)]
+    #[arg(default_value = ".")]
     paths: Vec<PathBuf>,
 
-    #[command(subcommand)]
-    command: Commands,
-}
+    /// Filter by file extensions (comma-separated, e.g. rs,py,js)
+    #[arg(long, value_name = "EXTENSIONS")]
+    exts: Option<String>,
 
-#[derive(Subcommand)]
-enum Commands {
-    /// Count lines of code grouped by language
-    Lc {
-        /// Show only these extensions (comma-separated, e.g. rs,py,js)
-        #[arg(long, value_name = "EXTENSIONS")]
-        extensions: Option<String>,
-    },
-    /// Count size of files grouped by extension
-    Size {
-        /// Show only these extensions (comma-separated, e.g. rs,py,js)
-        #[arg(long, value_name = "EXTENSIONS")]
-        extensions: Option<String>,
-    },
-    /// Merge all codebase into a single markdown file
-    Context {
-        /// Output file path (default: context.md)
-        #[arg(long, default_value = "context.md", value_name = "FILE")]
-        output: String,
-        #[arg(long, default_value = "false", value_name = "STDOUT")]
-        stdout: bool,
-    },
+    /// Count lines of code grouped by language instead of generating context
+    #[arg(long, default_value = "false")]
+    lc: bool,
+
+    /// Print context to stdout instead of writing to a file
+    #[arg(long, default_value = "false")]
+    stdout: bool,
+
+    /// Output file path for context mode (default: context.md)
+    #[arg(long, default_value = "context.md", value_name = "FILE")]
+    output: String,
 }
 
 mod line_count;
@@ -46,37 +35,33 @@ mod utilities;
 fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Lc { extensions } => {
-            match line_count::count_lines(&cli.paths, extensions.as_deref()) {
-                Ok(counts) => {
-                    for (ext, count) in counts {
-                        println!("{} files: {} lines", ext, count);
-                    }
+    let ext_filter = if let Some(ref exts) = cli.exts {
+        let parsed: Vec<String> = exts
+            .split(',')
+            .map(|s| s.trim().to_lowercase())
+            .collect();
+        Some(parsed)
+    } else {
+        None
+    };
+
+    if cli.lc {
+        match line_count::count_lines(&cli.paths, ext_filter.as_ref()) {
+            Ok(counts) => {
+                for (ext, count) in counts {
+                    println!("{} files: {} lines", ext, count);
                 }
-                Err(e) => eprintln!("Error counting lines: {}", e),
             }
+            Err(e) => eprintln!("Error counting lines: {}", e),
         }
-        Commands::Size { extensions } => {
-            match line_count::count_file_sizes(&cli.paths, extensions.as_deref()) {
-                Ok(counts) => {
-                    for (ext, count) in counts {
-                        println!("{} files: {} bytes", ext, count);
-                    }
-                }
-                Err(e) => eprintln!("Error counting file sizes: {}", e),
-            }
-        }
-        Commands::Context { output, stdout } => {
-            // Write output file
-            let content = context::generate_context(&cli.paths);
-            if *stdout {
-                println!("{content}");
-            } else {
-                match fs::write(output, &content) {
-                    Ok(()) => {},
-                    Err(e) => eprintln!("Error writing context: {}", e),
-                };
+    } else {
+        let content = context::generate_context(&cli.paths, ext_filter.as_ref());
+        if cli.stdout {
+            println!("{}", content);
+        } else {
+            match fs::write(&cli.output, &content) {
+                Ok(()) => {}
+                Err(e) => eprintln!("Error writing context: {}", e),
             }
         }
     }
