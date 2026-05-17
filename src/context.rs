@@ -4,7 +4,7 @@ use ignore::WalkBuilder;
 use crate::utilities::is_text_extension;
 
 /// Merges the entire codebase into a single markdown file
-pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn generate_context(paths: &[PathBuf]) -> String {
     let mut content = String::new();
 
     // Add file tree structure
@@ -15,13 +15,9 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
             let entry_path = entry.path();
 
             // Get relative path for display
-            let rel_path = entry_path.strip_prefix(path).unwrap_or(entry_path);
-            // Add indentation based on depth
-            let depth = rel_path.components().count();
-            if depth >= 1 {
-                let indent = "  ".repeat(depth - 1);
-                content.push_str(&format!("{}- {}\n", indent, rel_path.file_name().unwrap().display()));
-            }
+            let depth = entry_path.components().count();
+            let indent = "  ".repeat(depth - 1);
+            content.push_str(&format!("{}- {}\n", indent, entry_path.display()));
         }
     }
 
@@ -53,8 +49,5 @@ pub fn generate_context(paths: &[PathBuf], output: &str) -> Result<(), Box<dyn s
         }
     }
 
-    // Write output file
-    fs::write(output, &content)?;
-
-    Ok(())
+    content
 }
