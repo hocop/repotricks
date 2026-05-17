@@ -10,12 +10,29 @@ Merges all codebase into a single markdown file with file structure and contents
 
 ```bash
 $ rcontext
-$ rcontext src/ tests/
-$ rcontext --stdout
-$ rcontext --stdout --exts rs,toml
+Context saved to my_context.md
 ```
 
-Now you can safely upload all your company's codebase into ~~stackoverflow~~ chatgpt!
+> [!TIP]
+> Now you can safely upload all your company's codebase into ~~stackoverflow~~ chatgpt!
+
+List specific files and/or directories:
+
+```bash
+rcontext src/ tests/ README.md
+```
+
+Filter by extensions:
+
+```bash
+rcontext --exts rs,toml
+```
+
+Print to stdout instead of `my_context.md`.
+
+```bash
+rcontext --stdout
+```
 
 ### Line count
 
@@ -44,7 +61,7 @@ toml files: 12 lines
 ## Installation
 
 ```bash
-$ cargo install --git https://github.com/hocop/repotricks
+$ cargo install --git https://github.com/hocop/rcontext
 ```
 
 ## Features
