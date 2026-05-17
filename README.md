@@ -1,48 +1,47 @@
-# Repotricks
+# rcontext
 
-A CLI tool to analyze code repositories.
+A CLI tool to merge a codebase into a single context file.
 
-## Commands
+## Usage
 
-### `context`
+### Context merging
 
 Merges all codebase into a single markdown file with file structure and contents.
 
 ```bash
-$ repotricks context
-Context file generated: context.md
+$ rcontext
+$ rcontext src/ tests/
+$ rcontext --stdout
+$ rcontext --stdout --exts rs,toml
 ```
 
 Now you can safely upload all your company's codebase into ~~stackoverflow~~ chatgpt!
 
-### `lc`
+### Line count
 
 Counts non-blank lines of code, grouped by language (file extension).
 
-```
-$ repotricks lc
+```bash
+$ rcontext --lc
 md files: 29 lines
+rs files: 206 lines
+toml files: 12 lines
+
+$ rcontext --lc --exts rs,toml
 rs files: 206 lines
 toml files: 12 lines
 ```
 
-### `size`
+## Options
 
-Counts file sizes grouped by extension.
-
-```
-$ repotricks size
-md files: 640 bytes
-rs files: 11224 bytes
-toml files: 235 bytes
-
-$ repotricks size --extensions rs
-rs files: 11224 bytes
-```
+| Flag       | Description                                               |
+|------------|-----------------------------------------------------------|
+| `--exts`   | Filter by file extensions (comma-separated, e.g. `rs,py`)|
+| `--lc`     | Count lines instead of generating context                 |
+| `--stdout` | Print context to stdout                                   |
+| `--output` | Output file for context mode (default: `context.md`)     |
 
 ## Installation
-
-To install the tool, use cargo:
 
 ```bash
 $ cargo install --git https://github.com/hocop/repotricks
@@ -51,4 +50,4 @@ $ cargo install --git https://github.com/hocop/repotricks
 ## Features
 
 - Respects .gitignore
-- Reasonably blazingly fast
+- Blazing fast
