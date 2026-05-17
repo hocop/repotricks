@@ -1,5 +1,21 @@
 /// Common utilities used across the application
 
+use std::path::Path;
+use std::fs;
+
+/// Check if a file is already listed in .gitignore
+pub fn is_in_gitignore(file: &str) -> bool {
+    let gitignore = Path::new(".gitignore");
+    if !gitignore.exists() {
+        return false;
+    }
+    if let Ok(content) = fs::read_to_string(gitignore) {
+        content.lines().any(|line| line.trim() == file)
+    } else {
+        false
+    }
+}
+
 /// Check if an extension is for a text-based file (whitelist approach)
 pub fn is_text_extension(extension: &str) -> bool {
     match extension.to_lowercase().as_str() {
