@@ -61,7 +61,7 @@ toml files: 12 lines
 ## Installation
 
 ```bash
-$ cargo install --git https://github.com/hocop/rcontext
+cargo install --git https://github.com/hocop/rcontext
 ```
 
 ## Features
