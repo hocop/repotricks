@@ -3,11 +3,23 @@ use std::path::PathBuf;
 use ignore::WalkBuilder;
 use crate::utilities::is_text_extension;
 
-pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>, exclude_file: Option<&str>) -> String {
-    let exclude_path = exclude_file.map(|f| {
-        fs::canonicalize(f).unwrap_or_else(|_| PathBuf::from(f))
-    });
+fn is_excluded(entry_path: &std::path::Path, excludes: &[PathBuf]) -> bool {
+    if excludes.is_empty() {
+        return false;
+    }
+    if let Ok(canonical) = fs::canonicalize(entry_path) {
+        for excl in excludes {
+            if let Ok(excl_canonical) = fs::canonicalize(excl) {
+                if canonical == excl_canonical || canonical.starts_with(&excl_canonical) {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
 
+pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>, _exclude_file: Option<&str>, excludes: &[PathBuf]) -> String {
     let mut content = String::new();
 
     content.push_str("# File Structure\n\n");
@@ -16,12 +28,8 @@ pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>, exc
         for entry in walk.build().filter_map(Result::ok) {
             let entry_path = entry.path();
 
-            if let Some(ref excl) = exclude_path {
-                if let Ok(canonical) = fs::canonicalize(entry_path) {
-                    if &canonical == excl {
-                        continue;
-                    }
-                }
+            if is_excluded(entry_path, excludes) {
+                continue;
             }
 
             let depth = entry_path.components().count();
@@ -37,12 +45,8 @@ pub fn generate_context(paths: &[PathBuf], extensions: Option<&Vec<String>>, exc
         for entry in walk.build().filter_map(Result::ok) {
             let entry_path = entry.path();
 
-            if let Some(ref excl) = exclude_path {
-                if let Ok(canonical) = fs::canonicalize(entry_path) {
-                    if &canonical == excl {
-                        continue;
-                    }
-                }
+            if is_excluded(entry_path, excludes) {
+                continue;
             }
 
             let extension = entry_path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
