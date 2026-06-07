@@ -6,13 +6,30 @@ use ignore::WalkBuilder;
 use rayon::prelude::*;
 use crate::utilities::is_text_extension;
 
-pub fn count_lines(paths: &[PathBuf], extensions: Option<&Vec<String>>) -> Result<BTreeMap<String, usize>, Box<dyn std::error::Error>> {
+fn is_excluded(entry_path: &Path, excludes: &[PathBuf]) -> bool {
+    if excludes.is_empty() {
+        return false;
+    }
+    if let Ok(canonical) = fs::canonicalize(entry_path) {
+        for excl in excludes {
+            if let Ok(excl_canonical) = fs::canonicalize(excl) {
+                if canonical == excl_canonical || canonical.starts_with(&excl_canonical) {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
+pub fn count_lines(paths: &[PathBuf], extensions: Option<&Vec<String>>, excludes: &[PathBuf]) -> Result<BTreeMap<String, usize>, Box<dyn std::error::Error>> {
     let mut counts: BTreeMap<String, usize> = BTreeMap::new();
 
     paths.iter()
         .flat_map(|path| WalkBuilder::new(path).build())
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().map_or(false, |ft| ft.is_file()))
+        .filter(|entry| !is_excluded(entry.path(), excludes))
         .filter_map(|entry| {
             entry.path().extension()
                 .and_then(|os_str| os_str.to_str())

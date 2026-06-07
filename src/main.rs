@@ -9,8 +9,12 @@ use utilities::is_in_gitignore;
 #[command(about = "Merge codebase into context or count lines", long_about = None)]
 struct Cli {
     /// One or more paths to search (default is current directory)
-    #[arg(default_value = ".")]
+    #[arg(default_value = ".", short = 'p')]
     paths: Vec<PathBuf>,
+
+    /// One or more paths to exclude (applied after paths; effectively paths_to_include = set(paths) - set(exclude))
+    #[arg(long, short = 'x', value_name = "PATHS")]
+    exclude: Vec<PathBuf>,
 
     /// Filter by file extensions (comma-separated, e.g. rs,py,js)
     #[arg(long, value_name = "EXTENSIONS")]
@@ -21,7 +25,7 @@ struct Cli {
     lc: bool,
 
     /// Print context to stdout instead of writing to a file
-    #[arg(long, default_value = "false")]
+    #[arg(long, default_value = "false", short = 's')]
     stdout: bool,
 
     /// Output file path for context mode (default: context.md)
@@ -47,7 +51,7 @@ fn main() {
     };
 
     if cli.lc {
-        match line_count::count_lines(&cli.paths, ext_filter.as_ref()) {
+        match line_count::count_lines(&cli.paths, ext_filter.as_ref(), &cli.exclude) {
             Ok(counts) => {
                 for (ext, count) in counts {
                     println!("{} files: {} lines", ext, count);
@@ -56,7 +60,7 @@ fn main() {
             Err(e) => eprintln!("Error counting lines: {}", e),
         }
     } else {
-        let content = context::generate_context(&cli.paths, ext_filter.as_ref(), Some(&cli.output));
+        let content = context::generate_context(&cli.paths, ext_filter.as_ref(), Some(&cli.output), &cli.exclude);
         if cli.stdout {
             println!("{}", content);
         } else {
